@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   View,
@@ -17,7 +17,9 @@ from "../services/firebaseConfig";
 import {
   collection,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  updateDoc,
+  doc
 } from "firebase/firestore";
 
 import { LinearGradient }
@@ -29,7 +31,10 @@ from "@expo/vector-icons";
 import { Picker }
 from "@react-native-picker/picker";
 
-export default function AddTransactionScreen() {
+export default function AddTransactionScreen({
+  route,
+  navigation
+}) {
 
   const [title, setTitle] =
     useState("");
@@ -49,13 +54,44 @@ export default function AddTransactionScreen() {
   const [account, setAccount] =
     useState("Efectivo");
 
-  // GUARDAR TRANSACCIÓN
+  const transaction =
+    route?.params?.transaction;
+
+  // CARGAR DATOS
+
+  useEffect(() => {
+
+    if (transaction) {
+
+      setTitle(transaction.title);
+
+      setAmount(
+        transaction.amount.toString()
+      );
+
+      setDescription(
+        transaction.description
+      );
+
+      setType(transaction.type);
+
+      setCategory(
+        transaction.category
+      );
+
+      setAccount(
+        transaction.account
+      );
+
+    }
+
+  }, []);
+
+  // GUARDAR
 
   const saveTransaction = async () => {
 
     try {
-
-      // VALIDACIONES
 
       if (
         !title.trim() ||
@@ -71,8 +107,6 @@ export default function AddTransactionScreen() {
         return;
       }
 
-      // VALIDAR TÍTULO
-
       const lettersRegex =
         /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/;
 
@@ -86,8 +120,6 @@ export default function AddTransactionScreen() {
         return;
       }
 
-      // VALIDAR DESCRIPCIÓN
-
       if (
         !lettersRegex.test(description)
       ) {
@@ -99,8 +131,6 @@ export default function AddTransactionScreen() {
 
         return;
       }
-
-      // VALIDAR MONTO
 
       if (
         isNaN(amount) ||
@@ -115,8 +145,6 @@ export default function AddTransactionScreen() {
         return;
       }
 
-      // USUARIO
-
       const user =
         auth.currentUser;
 
@@ -130,29 +158,58 @@ export default function AddTransactionScreen() {
         return;
       }
 
-      // GUARDAR EN FIREBASE
+      // EDITAR
 
-      await addDoc(
-        collection(db, "transactions"),
-        {
-          uid: user.uid,
-          title,
-          amount: Number(amount),
-          type,
-          category,
-          account,
-          description,
-          date: new Date(),
-          createdAt: serverTimestamp(),
-        }
-      );
+      if (transaction) {
 
-      Alert.alert(
-        "Éxito",
-        "Transacción guardada correctamente"
-      );
+        await updateDoc(
+          doc(
+            db,
+            "transactions",
+            transaction.id
+          ),
+          {
+            title,
+            amount: Number(amount),
+            type,
+            category,
+            account,
+            description,
+          }
+        );
 
-      // LIMPIAR FORMULARIO
+        Alert.alert(
+          "Éxito",
+          "Transacción actualizada"
+        );
+
+      // CREAR
+
+      } else {
+
+        await addDoc(
+          collection(db, "transactions"),
+          {
+            uid: user.uid,
+            title,
+            amount: Number(amount),
+            type,
+            category,
+            account,
+            description,
+            date: new Date(),
+            createdAt: serverTimestamp(),
+          }
+        );
+
+        Alert.alert(
+          "Éxito",
+          "Transacción guardada correctamente"
+        );
+
+      }
+
+      // LIMPIAR
 
       setTitle("");
       setAmount("");
@@ -161,6 +218,8 @@ export default function AddTransactionScreen() {
       setType("Gasto");
       setCategory("Comida");
       setAccount("Efectivo");
+
+      navigation.goBack();
 
     } catch (error) {
 
@@ -193,8 +252,6 @@ export default function AddTransactionScreen() {
         showsVerticalScrollIndicator={false}
       >
 
-        {/* HEADER */}
-
         <View style={styles.header}>
 
           <Ionicons
@@ -204,11 +261,11 @@ export default function AddTransactionScreen() {
           />
 
           <Text style={styles.title}>
-            Nueva Transacción
-          </Text>
-
-          <Text style={styles.subtitle}>
-            Registra tus ingresos y gastos
+            {
+              transaction
+                ? "Editar Transacción"
+                : "Nueva Transacción"
+            }
           </Text>
 
         </View>
@@ -232,12 +289,6 @@ export default function AddTransactionScreen() {
             }
           >
 
-            <Ionicons
-              name="arrow-down-circle"
-              size={22}
-              color="#FFFFFF"
-            />
-
             <Text style={styles.typeText}>
               Ingreso
             </Text>
@@ -255,12 +306,6 @@ export default function AddTransactionScreen() {
             }
           >
 
-            <Ionicons
-              name="arrow-up-circle"
-              size={22}
-              color="#FFFFFF"
-            />
-
             <Text style={styles.typeText}>
               Gasto
             </Text>
@@ -276,12 +321,6 @@ export default function AddTransactionScreen() {
         </Text>
 
         <View style={styles.inputContainer}>
-
-          <Ionicons
-            name="create"
-            size={22}
-            color="#64748B"
-          />
 
           <TextInput
             placeholder="Ej. Compra comida"
@@ -301,12 +340,6 @@ export default function AddTransactionScreen() {
 
         <View style={styles.inputContainer}>
 
-          <Ionicons
-            name="cash"
-            size={22}
-            color="#64748B"
-          />
-
           <TextInput
             placeholder="0.00"
             placeholderTextColor="#94A3B8"
@@ -325,12 +358,6 @@ export default function AddTransactionScreen() {
         </Text>
 
         <View style={styles.pickerContainer}>
-
-          <Ionicons
-            name="grid"
-            size={22}
-            color="#64748B"
-          />
 
           <Picker
             selectedValue={category}
@@ -376,12 +403,6 @@ export default function AddTransactionScreen() {
         </Text>
 
         <View style={styles.pickerContainer}>
-
-          <Ionicons
-            name="card"
-            size={22}
-            color="#64748B"
-          />
 
           <Picker
             selectedValue={account}
@@ -437,14 +458,12 @@ export default function AddTransactionScreen() {
           onPress={saveTransaction}
         >
 
-          <Ionicons
-            name="save"
-            size={22}
-            color="#FFFFFF"
-          />
-
           <Text style={styles.saveButtonText}>
-            Guardar Transacción
+            {
+              transaction
+                ? "Actualizar"
+                : "Guardar Transacción"
+            }
           </Text>
 
         </TouchableOpacity>
@@ -475,12 +494,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
 
-  subtitle: {
-    color: "#CBD5E1",
-    marginTop: 5,
-    fontSize: 15,
-  },
-
   label: {
     color: "#FFFFFF",
     fontSize: 16,
@@ -501,56 +514,44 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "row",
-    opacity: 0.6,
+    backgroundColor: "#334155",
   },
 
   activeIncome: {
     backgroundColor: "#10B981",
-    opacity: 1,
   },
 
   activeExpense: {
     backgroundColor: "#EF4444",
-    opacity: 1,
   },
 
   typeText: {
     color: "#FFFFFF",
     fontWeight: "bold",
-    marginLeft: 8,
     fontSize: 16,
   },
 
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderRadius: 15,
     paddingHorizontal: 15,
     marginBottom: 20,
     height: 60,
+    justifyContent: "center",
   },
 
   input: {
-    flex: 1,
-    marginLeft: 10,
     color: "#0F172A",
     fontSize: 16,
   },
 
   pickerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
     backgroundColor: "#FFFFFF",
     borderRadius: 15,
-    paddingHorizontal: 10,
     marginBottom: 20,
-    height: 60,
   },
 
   picker: {
-    flex: 1,
     color: "#0F172A",
   },
 
@@ -573,7 +574,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    flexDirection: "row",
     marginBottom: 30,
   },
 
@@ -581,7 +581,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
-    marginLeft: 10,
   },
 
 });

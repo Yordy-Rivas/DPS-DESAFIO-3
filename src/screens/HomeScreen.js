@@ -7,7 +7,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
-    ScrollView
+  ScrollView
 } from "react-native";
 
 import { useEffect, useState } from "react";
@@ -176,209 +176,237 @@ export default function HomeScreen({ navigation }) {
 
   return (
 
-     <ScrollView
-    showsVerticalScrollIndicator={false}
-  >
-
-    <LinearGradient
-      colors={["#0F172A", "#1E3A8A"]}
-      style={styles.container}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
     >
 
-      <StatusBar
-        barStyle="light-content"
-      />
-
-      {/* HEADER */}
-
-      <View style={styles.header}>
-
-        <View>
-
-          <Text style={styles.greeting}>
-            Hola, {userName} 👋
-          </Text>
-
-          <Text style={styles.subtitle}>
-            Bienvenido nuevamente
-          </Text>
-
-        </View>
-
-        <View style={styles.profileCircle}>
-
-          <Ionicons
-            name="person"
-            size={28}
-            color="#FFFFFF"
-          />
-
-        </View>
-
-      </View>
-
-      {/* BALANCE */}
-
       <LinearGradient
-        colors={["#10B981", "#059669"]}
-        style={styles.balanceCard}
+        colors={["#0F172A", "#1E3A8A"]}
+        style={styles.container}
       >
 
-        <Text style={styles.balanceTitle}>
-          Balance Total
-        </Text>
-
-       <Text style={styles.balanceAmount}>
-
-        {
-          balance < 0
-            ? `Excediste de tu presupuesto $${Math.abs(balance)}`
-            : `$${balance}`
-        }
-
-      </Text>
-
-      </LinearGradient>
-      
-
-      {/* INGRESOS Y GASTOS */}
-
-      <View style={styles.statsContainer}>
-
-        <View style={styles.statCard}>
-
-          <Ionicons
-            name="arrow-down-circle"
-            size={35}
-            color="#10B981"
-          />
-
-          <Text style={styles.statTitle}>
-            Ingresos
-          </Text>
-
-          <Text style={styles.incomeText}>
-            ${income}
-          </Text>
-
-        </View>
-
-        <View style={styles.statCard}>
-
-          <Ionicons
-            name="arrow-up-circle"
-            size={35}
-            color="#EF4444"
-          />
-
-          <Text style={styles.statTitle}>
-            Gastos
-          </Text>
-
-          <Text style={styles.expenseText}>
-            ${expense}
-          </Text>
-
-        </View>
-
-      </View>
-
-      {/* BOTÓN */}
-
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() =>
-          navigation.navigate(
-            "AddTransaction"
-          )
-        }
-      >
-
-        <Ionicons
-          name="add"
-          size={24}
-          color="#FFFFFF"
+        <StatusBar
+          barStyle="light-content"
         />
 
-        <Text style={styles.addButtonText}>
-          Agregar Transacción
-        </Text>
+        {/* HEADER */}
 
-      </TouchableOpacity>
+        <View style={styles.header}>
 
-      {/* HISTORIAL */}
+          <View>
 
-      <Text style={styles.historyTitle}>
-        Últimas Transacciones
-      </Text>
+            <Text style={styles.greeting}>
+              Hola, {userName} 👋
+            </Text>
 
-      <FlatList
-        data={transactions}
-        keyExtractor={(item) => item.id}
-
-        renderItem={({ item }) => (
-
-          <View style={styles.transactionCard}>
-
-            <View>
-
-              <Text
-                style={styles.transactionTitle}
-              >
-                {item.title}
-              </Text>
-
-              <Text
-                style={styles.transactionType}
-              >
-                {item.category}
-              </Text>
-
-            </View>
-
-            <View
-              style={{
-                alignItems: "flex-end"
-              }}
-            >
-
-              <Text
-                style={
-                  item.type === "Ingreso"
-                    ? styles.incomeAmount
-                    : styles.expenseAmount
-                }
-              >
-                ${item.amount}
-              </Text>
-
-              <TouchableOpacity
-                onPress={() =>
-                  deleteTransaction(item.id)
-                }
-              >
-
-                <Text
-                  style={{
-                    color: "red",
-                    marginTop: 5,
-                    fontWeight: "bold"
-                  }}
-                >
-                  Eliminar
-                </Text>
-
-              </TouchableOpacity>
-
-            </View>
+            <Text style={styles.subtitle}>
+              Bienvenido nuevamente
+            </Text>
 
           </View>
 
-        )}
+          <View style={styles.profileCircle}>
 
-      />
+            <Ionicons
+              name="person"
+              size={28}
+              color="#FFFFFF"
+            />
 
-    </LinearGradient>
+          </View>
+
+        </View>
+
+        {/* BALANCE */}
+
+        <LinearGradient
+          colors={["#10B981", "#059669"]}
+          style={styles.balanceCard}
+        >
+
+          <Text style={styles.balanceTitle}>
+            Balance Total
+          </Text>
+
+          <Text style={styles.balanceAmount}>
+
+            {
+              balance < 0
+                ? `Excediste de tu presupuesto $${Math.abs(balance)}`
+                : `$${balance}`
+            }
+
+          </Text>
+
+        </LinearGradient>
+
+        {/* INGRESOS Y GASTOS */}
+
+        <View style={styles.statsContainer}>
+
+          <View style={styles.statCard}>
+
+            <Ionicons
+              name="arrow-down-circle"
+              size={35}
+              color="#10B981"
+            />
+
+            <Text style={styles.statTitle}>
+              Ingresos
+            </Text>
+
+            <Text style={styles.incomeText}>
+              ${income}
+            </Text>
+
+          </View>
+
+          <View style={styles.statCard}>
+
+            <Ionicons
+              name="arrow-up-circle"
+              size={35}
+              color="#EF4444"
+            />
+
+            <Text style={styles.statTitle}>
+              Gastos
+            </Text>
+
+            <Text style={styles.expenseText}>
+              ${expense}
+            </Text>
+
+          </View>
+
+        </View>
+
+        {/* BOTÓN */}
+
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() =>
+            navigation.navigate(
+              "AddTransaction"
+            )
+          }
+        >
+
+          <Ionicons
+            name="add"
+            size={24}
+            color="#FFFFFF"
+          />
+
+          <Text style={styles.addButtonText}>
+            Agregar Transacción
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* HISTORIAL */}
+
+        <Text style={styles.historyTitle}>
+          Últimas Transacciones
+        </Text>
+
+        <FlatList
+          data={transactions}
+          keyExtractor={(item) => item.id}
+          scrollEnabled={false}
+
+          renderItem={({ item }) => (
+
+            <View style={styles.transactionCard}>
+
+              <View>
+
+                <Text
+                  style={styles.transactionTitle}
+                >
+                  {item.title}
+                </Text>
+
+                <Text
+                  style={styles.transactionType}
+                >
+                  {item.category}
+                </Text>
+
+              </View>
+
+              <View
+                style={{
+                  alignItems: "flex-end"
+                }}
+              >
+
+                <Text
+                  style={
+                    item.type === "Ingreso"
+                      ? styles.incomeAmount
+                      : styles.expenseAmount
+                  }
+                >
+                  ${item.amount}
+                </Text>
+
+                {/* EDITAR */}
+
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate(
+                      "AddTransaction",
+                      {
+                        transaction: item
+                      }
+                    )
+                  }
+                >
+
+                  <Text
+                    style={{
+                      color: "#2563EB",
+                      marginTop: 5,
+                      fontWeight: "bold"
+                    }}
+                  >
+                    Editar
+                  </Text>
+
+                </TouchableOpacity>
+
+                {/* ELIMINAR */}
+
+                <TouchableOpacity
+                  onPress={() =>
+                    deleteTransaction(item.id)
+                  }
+                >
+
+                  <Text
+                    style={{
+                      color: "red",
+                      marginTop: 5,
+                      fontWeight: "bold"
+                    }}
+                  >
+                    Eliminar
+                  </Text>
+
+                </TouchableOpacity>
+
+              </View>
+
+            </View>
+
+          )}
+
+        />
+
+      </LinearGradient>
+
     </ScrollView>
 
   );
@@ -440,7 +468,7 @@ const styles = StyleSheet.create({
 
   balanceAmount: {
     color: "#FFFFFF",
-    fontSize: 38,
+    fontSize: 28,
     fontWeight: "bold",
     marginTop: 10,
   },
