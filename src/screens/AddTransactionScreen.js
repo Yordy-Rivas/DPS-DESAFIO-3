@@ -11,63 +11,170 @@ import {
   StatusBar
 } from "react-native";
 
-import { LinearGradient } from "expo-linear-gradient";
+import { auth, db }
+from "../services/firebaseConfig";
 
-import { Ionicons } from "@expo/vector-icons";
+import {
+  collection,
+  addDoc,
+  serverTimestamp
+} from "firebase/firestore";
 
-import { Picker } from "@react-native-picker/picker";
+import { LinearGradient }
+from "expo-linear-gradient";
+
+import { Ionicons }
+from "@expo/vector-icons";
+
+import { Picker }
+from "@react-native-picker/picker";
 
 export default function AddTransactionScreen() {
 
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] =
+    useState("");
 
-  const [type, setType] = useState("Gasto");
+  const [amount, setAmount] =
+    useState("");
 
-  const [category, setCategory] = useState("Comida");
+  const [description, setDescription] =
+    useState("");
 
-  const [account, setAccount] = useState("Efectivo");
+  const [type, setType] =
+    useState("Gasto");
 
-  const handleSave = () => {
+  const [category, setCategory] =
+    useState("Comida");
 
-    if (
-      !title ||
-      !amount ||
-      !description
-    ) {
+  const [account, setAccount] =
+    useState("Efectivo");
+
+  // GUARDAR TRANSACCIÓN
+
+  const saveTransaction = async () => {
+
+    try {
+
+      // VALIDACIONES
+
+      if (
+        !title.trim() ||
+        !amount.trim() ||
+        !description.trim()
+      ) {
+
+        Alert.alert(
+          "Error",
+          "Complete todos los campos"
+        );
+
+        return;
+      }
+
+      // VALIDAR TÍTULO
+
+      const lettersRegex =
+        /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/;
+
+      if (!lettersRegex.test(title)) {
+
+        Alert.alert(
+          "Error",
+          "El título solo debe contener letras"
+        );
+
+        return;
+      }
+
+      // VALIDAR DESCRIPCIÓN
+
+      if (
+        !lettersRegex.test(description)
+      ) {
+
+        Alert.alert(
+          "Error",
+          "La descripción solo debe contener letras"
+        );
+
+        return;
+      }
+
+      // VALIDAR MONTO
+
+      if (
+        isNaN(amount) ||
+        Number(amount) <= 0
+      ) {
+
+        Alert.alert(
+          "Error",
+          "Ingrese un monto válido"
+        );
+
+        return;
+      }
+
+      // USUARIO
+
+      const user =
+        auth.currentUser;
+
+      if (!user) {
+
+        Alert.alert(
+          "Error",
+          "Usuario no autenticado"
+        );
+
+        return;
+      }
+
+      // GUARDAR EN FIREBASE
+
+      await addDoc(
+        collection(db, "transactions"),
+        {
+          uid: user.uid,
+          title,
+          amount: Number(amount),
+          type,
+          category,
+          account,
+          description,
+          date: new Date(),
+          createdAt: serverTimestamp(),
+        }
+      );
+
+      Alert.alert(
+        "Éxito",
+        "Transacción guardada correctamente"
+      );
+
+      // LIMPIAR FORMULARIO
+
+      setTitle("");
+      setAmount("");
+      setDescription("");
+
+      setType("Gasto");
+      setCategory("Comida");
+      setAccount("Efectivo");
+
+    } catch (error) {
+
+      console.log(
+        "ERROR FIREBASE:",
+        error
+      );
 
       Alert.alert(
         "Error",
-        "Complete todos los campos"
+        "Ocurrió un problema al guardar"
       );
 
-      return;
     }
-
-    if (isNaN(amount)) {
-
-      Alert.alert(
-        "Error",
-        "El monto debe ser numérico"
-      );
-
-      return;
-    }
-
-    Alert.alert(
-      "Éxito",
-      "Transacción guardada correctamente"
-    );
-
-    console.log({
-      title,
-      amount,
-      description,
-      type,
-      category,
-      account
-    });
 
   };
 
@@ -162,7 +269,7 @@ export default function AddTransactionScreen() {
 
         </View>
 
-        {/* TITULO */}
+        {/* TÍTULO */}
 
         <Text style={styles.label}>
           Título
@@ -177,7 +284,7 @@ export default function AddTransactionScreen() {
           />
 
           <TextInput
-            placeholder="Ej. Compra de comida"
+            placeholder="Ej. Compra comida"
             placeholderTextColor="#94A3B8"
             value={title}
             onChangeText={setTitle}
@@ -327,7 +434,7 @@ export default function AddTransactionScreen() {
 
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={handleSave}
+          onPress={saveTransaction}
         >
 
           <Ionicons

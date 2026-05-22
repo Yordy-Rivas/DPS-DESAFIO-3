@@ -4,37 +4,181 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  StatusBar
+  StatusBar,
+  ActivityIndicator,
+  Alert,
+    ScrollView
 } from "react-native";
+
+import { useEffect, useState } from "react";
+
+import { auth, db } from "../services/firebaseConfig";
 
 import { LinearGradient } from "expo-linear-gradient";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { auth } from "../services/firebaseConfig";
-
-import { transactions } from "../data/dummyData";
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  deleteDoc,
+  doc
+} from "firebase/firestore";
 
 export default function HomeScreen({ navigation }) {
 
   const user = auth.currentUser;
 
+  const [transactions, setTransactions] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [income, setIncome] =
+    useState(0);
+
+  const [expense, setExpense] =
+    useState(0);
+
+  const [balance, setBalance] =
+    useState(0);
+
   const userName = user?.email
     ? user.email.split("@")[0]
     : "Usuario";
 
-  const totalIncome = transactions
-    .filter(item => item.type === "Ingreso")
-    .reduce((acc, item) => acc + item.amount, 0);
+  // CARGAR TRANSACCIONES
 
-  const totalExpense = transactions
-    .filter(item => item.type === "Gasto")
-    .reduce((acc, item) => acc + item.amount, 0);
+  useEffect(() => {
 
-  const totalBalance =
-    totalIncome - totalExpense;
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    const q = query(
+      collection(db, "transactions"),
+      where("uid", "==", user.uid)
+    );
+
+    const unsubscribe =
+      onSnapshot(q, (snapshot) => {
+
+        let list = [];
+
+        let totalIncome = 0;
+
+        let totalExpense = 0;
+
+        snapshot.forEach((doc) => {
+
+          const data = {
+            id: doc.id,
+            ...doc.data(),
+          };
+
+          list.push(data);
+
+          if (data.type === "Ingreso") {
+
+            totalIncome += data.amount;
+
+          } else {
+
+            totalExpense += data.amount;
+
+          }
+
+        });
+
+        setTransactions(list);
+
+        setIncome(totalIncome);
+
+        setExpense(totalExpense);
+
+        setBalance(
+          totalIncome - totalExpense
+        );
+
+        setLoading(false);
+
+      });
+
+    return () => unsubscribe();
+
+  }, []);
+
+  // ELIMINAR TRANSACCIÓN
+
+  const deleteTransaction = (id) => {
+
+    Alert.alert(
+      "Eliminar",
+      "¿Deseas eliminar esta transacción?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+
+        {
+          text: "Eliminar",
+          style: "destructive",
+
+          onPress: async () => {
+
+            try {
+
+              await deleteDoc(
+                doc(
+                  db,
+                  "transactions",
+                  id
+                )
+              );
+
+            } catch (error) {
+
+              Alert.alert(
+                "Error",
+                "No se pudo eliminar"
+              );
+
+            }
+
+          }
+
+        }
+      ]
+    );
+  };
+
+  // LOADING
+
+  if (loading) {
+
+    return (
+
+      <View style={styles.loadingContainer}>
+
+        <ActivityIndicator
+          size="large"
+          color="#10B981"
+        />
+
+      </View>
+
+    );
+  }
 
   return (
+
+     <ScrollView
+    showsVerticalScrollIndicator={false}
+  >
 
     <LinearGradient
       colors={["#0F172A", "#1E3A8A"]}
@@ -73,7 +217,7 @@ export default function HomeScreen({ navigation }) {
 
       </View>
 
-      {/* BALANCE CARD */}
+      {/* BALANCE */}
 
       <LinearGradient
         colors={["#10B981", "#059669"]}
@@ -84,11 +228,18 @@ export default function HomeScreen({ navigation }) {
           Balance Total
         </Text>
 
-        <Text style={styles.balanceAmount}>
-          ${totalBalance}
-        </Text>
+       <Text style={styles.balanceAmount}>
+
+        {
+          balance < 0
+            ? `Excediste de tu presupuesto $${Math.abs(balance)}`
+            : `$${balance}`
+        }
+
+      </Text>
 
       </LinearGradient>
+      
 
       {/* INGRESOS Y GASTOS */}
 
@@ -107,7 +258,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
 
           <Text style={styles.incomeText}>
-            ${totalIncome}
+            ${income}
           </Text>
 
         </View>
@@ -125,7 +276,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
 
           <Text style={styles.expenseText}>
-            ${totalExpense}
+            ${expense}
           </Text>
 
         </View>
@@ -163,11 +314,7 @@ export default function HomeScreen({ navigation }) {
 
       <FlatList
         data={transactions}
-        keyExtractor={(item) =>
-          item.id.toString()
-        }
-
-        showsVerticalScrollIndicator={false}
+        keyExtractor={(item) => item.id}
 
         renderItem={({ item }) => (
 
@@ -175,31 +322,65 @@ export default function HomeScreen({ navigation }) {
 
             <View>
 
-              <Text style={styles.transactionTitle}>
+              <Text
+                style={styles.transactionTitle}
+              >
                 {item.title}
               </Text>
 
-              <Text style={styles.transactionType}>
-                {item.type}
+              <Text
+                style={styles.transactionType}
+              >
+                {item.category}
               </Text>
 
             </View>
 
-            <Text
-              style={
-                item.type === "Ingreso"
-                  ? styles.incomeAmount
-                  : styles.expenseAmount
-              }
+            <View
+              style={{
+                alignItems: "flex-end"
+              }}
             >
-              ${item.amount}
-            </Text>
+
+              <Text
+                style={
+                  item.type === "Ingreso"
+                    ? styles.incomeAmount
+                    : styles.expenseAmount
+                }
+              >
+                ${item.amount}
+              </Text>
+
+              <TouchableOpacity
+                onPress={() =>
+                  deleteTransaction(item.id)
+                }
+              >
+
+                <Text
+                  style={{
+                    color: "red",
+                    marginTop: 5,
+                    fontWeight: "bold"
+                  }}
+                >
+                  Eliminar
+                </Text>
+
+              </TouchableOpacity>
+
+            </View>
 
           </View>
+
         )}
+
       />
 
     </LinearGradient>
+    </ScrollView>
+
   );
 }
 
@@ -209,6 +390,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     paddingTop: 60,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0F172A",
   },
 
   header: {
