@@ -499,3 +499,114 @@ export default function AddTransactionScreen({
         </LinearGradient>
       );
     }
+
+    const styles = StyleSheet.create({
+
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingTop: 60,
+  },
+
+  header: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  title: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+
+  label: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    marginBottom: 10,
+    marginTop: 10,
+    fontWeight: "600",
+  },
+
+  typeContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  typeButton: {
+    width: "48%",
+    height: 55,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#334155",
+  },
+
+  activeIncome: {
+    backgroundColor: "#10B981",
+  },
+
+  activeExpense: {
+    backgroundColor: "#EF4444",
+  },
+
+  typeText: {
+    color: "#FFFFFF",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+  inputContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    height: 60,
+    justifyContent: "center",
+  },
+
+  input: {
+    color: "#0F172A",
+    fontSize: 16,
+  },
+
+  pickerContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+
+  picker: {
+    color: "#0F172A",
+  },
+
+  descriptionContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 25,
+  },
+
+  descriptionInput: {
+    color: "#0F172A",
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+
+  saveButton: {
+    backgroundColor: "#10B981",
+    height: 60,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 30,
+  },
+
+  saveButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+});
