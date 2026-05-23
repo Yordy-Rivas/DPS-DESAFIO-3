@@ -1,59 +1,81 @@
-import React, { useEffect, useState } from 'react';
-
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import { onAuthStateChanged } from 'firebase/auth';
+import { useEffect, useState } from "react";
 
 import {
-  ActivityIndicator,
-  View
-} from 'react-native';
+  NavigationContainer
+} from "@react-navigation/native";
 
-import { auth } from '../services/firebaseConfig';
+import {
+  createNativeStackNavigator
+} from "@react-navigation/native-stack";
 
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
+import {
+  onAuthStateChanged
+} from "firebase/auth";
 
-import HomeScreen from '../screens/HomeScreen';
-import AccountsScreen from '../screens/AccountsScreen';
-import AddAccountScreen from '../screens/AddAccountScreen';
-import AddTransactionScreen from '../screens/AddTransactionScreen';
-import BudgetScreen from '../screens/BudgetScreen';
+import { auth }
+from "../services/firebaseConfig";
 
-const Stack = createNativeStackNavigator();
+// AUTH
+
+import LoginScreen
+from "../screens/LoginScreen";
+
+import RegisterScreen
+from "../screens/RegisterScreen";
+
+// APP
+
+import HomeScreen
+from "../screens/HomeScreen";
+
+import AddIncomeScreen
+from "../screens/AddIncomeScreen";
+
+import AddExpenseScreen
+from "../screens/AddExpenseScreen";
+
+import AddAccountScreen
+from "../screens/AddAccountScreen";
+
+import BudgetScreen
+from "../screens/BudgetScreen";
+
+const Stack =
+  createNativeStackNavigator();
 
 export default function AppNavigator() {
 
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  // ESCUCHAR LOGIN
 
   useEffect(() => {
 
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (currentUser) => {
 
-      setUser(currentUser);
-      setLoading(false);
+          setUser(currentUser);
 
-    });
+          setLoading(false);
+
+        }
+      );
 
     return unsubscribe;
 
   }, []);
 
+  // LOADING
+
   if (loading) {
 
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center'
-        }}
-      >
-        <ActivityIndicator size="large" color="#6C63FF" />
-      </View>
-    );
+    return null;
 
   }
 
@@ -63,58 +85,75 @@ export default function AppNavigator() {
 
       <Stack.Navigator
         screenOptions={{
-          headerShown: false
+          headerShown: false,
+          animation: "slide_from_right",
         }}
       >
 
-        {user ? (
+        {
+          user ? (
 
-          <>
+            <>
+            
+              {/* HOME */}
 
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-            />
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+              />
 
-            <Stack.Screen
-              name="Accounts"
-              component={AccountsScreen}
-            />
+              {/* INGRESOS */}
 
-            <Stack.Screen
-              name="AddAccount"
-              component={AddAccountScreen}
-            />
+              <Stack.Screen
+                name="AddIncome"
+                component={AddIncomeScreen}
+              />
 
-            <Stack.Screen
-              name="AddTransaction"
-              component={AddTransactionScreen}
-            />
+              {/* GASTOS */}
 
-            <Stack.Screen
-              name="Budget"
-              component={BudgetScreen}
-            />
+              <Stack.Screen
+                name="AddExpense"
+                component={AddExpenseScreen}
+              />
 
-          </>
+              {/* CUENTAS */}
 
-        ) : (
+              <Stack.Screen
+                name="AddAccount"
+                component={AddAccountScreen}
+              />
 
-          <>
+              {/* PRESUPUESTOS */}
 
-            <Stack.Screen
-              name="Login"
-              component={LoginScreen}
-            />
+              <Stack.Screen
+                name="Budget"
+                component={BudgetScreen}
+              />
 
-            <Stack.Screen
-              name="Register"
-              component={RegisterScreen}
-            />
+            </>
 
-          </>
+          ) : (
 
-        )}
+            <>
+            
+              {/* LOGIN */}
+
+              <Stack.Screen
+                name="Login"
+                component={LoginScreen}
+              />
+
+              {/* REGISTER */}
+
+              <Stack.Screen
+                name="Register"
+                component={RegisterScreen}
+              />
+
+            </>
+
+          )
+        }
 
       </Stack.Navigator>
 
