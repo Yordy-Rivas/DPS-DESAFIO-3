@@ -7,22 +7,39 @@ import {
   TouchableOpacity,
   Alert,
   StyleSheet,
-  StatusBar
+  StatusBar,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard
 } from "react-native";
 
 import { LinearGradient } from "expo-linear-gradient";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithEmailAndPassword
+} from "firebase/auth";
 
 import { auth } from "../services/firebaseConfig";
 
-export default function LoginScreen({ navigation }) {
+export default function LoginScreen({
+  navigation
+}) {
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
 
   const handleLogin = async () => {
 
@@ -34,9 +51,37 @@ export default function LoginScreen({ navigation }) {
       );
 
       return;
+
+    }
+
+    const emailRegex =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+
+      Alert.alert(
+        "Error",
+        "Correo inválido"
+      );
+
+      return;
+
+    }
+
+    if (password.length < 6) {
+
+      Alert.alert(
+        "Error",
+        "La contraseña debe tener mínimo 6 caracteres"
+      );
+
+      return;
+
     }
 
     try {
+
+      setLoading(true);
 
       await signInWithEmailAndPassword(
         auth,
@@ -44,132 +89,172 @@ export default function LoginScreen({ navigation }) {
         password
       );
 
-      navigation.navigate("Home");
-
     } catch (error) {
 
       Alert.alert(
         "Error",
-        "Correo o contraseña incorrectos"
+        "Credenciales inválidas"
       );
+
+    } finally {
+
+      setLoading(false);
+
     }
+
   };
 
   return (
 
-    <LinearGradient
-      colors={["#0F172A", "#1E3A8A", "#10B981"]}
-      style={styles.container}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
     >
 
-      <StatusBar
-        barStyle="light-content"
-      />
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
+      >
 
-      <View style={styles.card}>
+        <LinearGradient
+          colors={[
+            "#0F172A",
+            "#1E3A8A",
+            "#10B981"
+          ]}
+          style={styles.container}
+        >
 
-        <View style={styles.header}>
-
-          <Ionicons
-            name="wallet"
-            size={60}
-            color="#10B981"
+          <StatusBar
+            barStyle="light-content"
           />
 
-          <Text style={styles.title}>
-            FinanzApp
-          </Text>
+          <View style={styles.card}>
 
-          <Text style={styles.subtitle}>
-            Controla tus finanzas fácilmente
-          </Text>
+            <View style={styles.header}>
 
-        </View>
+              <Ionicons
+                name="wallet"
+                size={60}
+                color="#10B981"
+              />
 
-        <View style={styles.inputContainer}>
+              <Text style={styles.title}>
+                FinanzApp
+              </Text>
 
-          <Ionicons
-            name="mail"
-            size={22}
-            color="#64748B"
-          />
+              <Text style={styles.subtitle}>
+                Controla tus finanzas fácilmente
+              </Text>
 
-          <TextInput
-            placeholder="Correo electrónico"
-            placeholderTextColor="#94A3B8"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-          />
+            </View>
 
-        </View>
+            <View style={styles.inputContainer}>
 
-        <View style={styles.inputContainer}>
+              <Ionicons
+                name="mail"
+                size={22}
+                color="#64748B"
+              />
 
-          <Ionicons
-            name="lock-closed"
-            size={22}
-            color="#64748B"
-          />
+              <TextInput
+                placeholder="Correo electrónico"
+                placeholderTextColor="#94A3B8"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                style={styles.input}
+              />
 
-          <TextInput
-            placeholder="Contraseña"
-            placeholderTextColor="#94A3B8"
-            secureTextEntry={!showPassword}
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-          />
+            </View>
 
-          <TouchableOpacity
-            onPress={() =>
-              setShowPassword(!showPassword)
-            }
-          >
+            <View style={styles.inputContainer}>
 
-            <Ionicons
-              name={
-                showPassword
-                  ? "eye"
-                  : "eye-off"
+              <Ionicons
+                name="lock-closed"
+                size={22}
+                color="#64748B"
+              />
+
+              <TextInput
+                placeholder="Contraseña"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                style={styles.input}
+              />
+
+              <TouchableOpacity
+                onPress={() =>
+                  setShowPassword(!showPassword)
+                }
+              >
+
+                <Ionicons
+                  name={
+                    showPassword
+                      ? "eye"
+                      : "eye-off"
+                  }
+                  size={22}
+                  color="#64748B"
+                />
+
+              </TouchableOpacity>
+
+            </View>
+
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+
+              {
+                loading ? (
+
+                  <ActivityIndicator
+                    color="#FFFFFF"
+                  />
+
+                ) : (
+
+                  <Text style={styles.loginButtonText}>
+                    Iniciar Sesión
+                  </Text>
+
+                )
               }
-              size={22}
-              color="#64748B"
-            />
 
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-        </View>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Register")
+              }
+            >
 
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={handleLogin}
-        >
+              <Text style={styles.registerText}>
+                ¿No tienes cuenta? Registrarse
+              </Text>
 
-          <Text style={styles.loginButtonText}>
-            Iniciar Sesión
-          </Text>
+            </TouchableOpacity>
 
-        </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity
-          onPress={() =>
-            navigation.navigate("Register")
-          }
-        >
+        </LinearGradient>
 
-          <Text style={styles.registerText}>
-            ¿No tienes cuenta? Registrarse
-          </Text>
+      </TouchableWithoutFeedback>
 
-        </TouchableOpacity>
+    </KeyboardAvoidingView>
 
-      </View>
-
-    </LinearGradient>
   );
+
 }
 
 const styles = StyleSheet.create({
@@ -184,13 +269,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 25,
     padding: 25,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
     elevation: 10,
   },
 
