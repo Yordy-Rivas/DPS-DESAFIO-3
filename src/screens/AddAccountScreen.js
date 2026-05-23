@@ -6,7 +6,13 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  StatusBar
 } from "react-native";
 
 import {
@@ -21,6 +27,12 @@ import {
   db
 } from "../services/firebaseConfig";
 
+import { LinearGradient }
+from "expo-linear-gradient";
+
+import { Ionicons }
+from "@expo/vector-icons";
+
 export default function AddAccountScreen({
   route,
   navigation
@@ -34,6 +46,9 @@ export default function AddAccountScreen({
 
   const [balance, setBalance] =
     useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   // CARGAR DATOS SI EDITA
 
@@ -55,14 +70,36 @@ export default function AddAccountScreen({
 
   const saveAccount = async () => {
 
-    if (
-      !name.trim() ||
-      !balance.trim()
-    ) {
+    if (!name.trim()) {
 
       Alert.alert(
         "Error",
-        "Complete todos los campos"
+        "Ingrese el nombre de la cuenta"
+      );
+
+      return;
+
+    }
+
+    const lettersRegex =
+      /^[A-Za-zÁÉÍÓÚáéíóúñÑ\s]+$/;
+
+    if (!lettersRegex.test(name)) {
+
+      Alert.alert(
+        "Error",
+        "El nombre solo debe contener letras"
+      );
+
+      return;
+
+    }
+
+    if (!balance.trim()) {
+
+      Alert.alert(
+        "Error",
+        "Ingrese un saldo"
       );
 
       return;
@@ -70,7 +107,8 @@ export default function AddAccountScreen({
     }
 
     if (
-      isNaN(balance)
+      isNaN(balance) ||
+      Number(balance) < 0
     ) {
 
       Alert.alert(
@@ -83,6 +121,8 @@ export default function AddAccountScreen({
     }
 
     try {
+
+      setLoading(true);
 
       // EDITAR
 
@@ -125,6 +165,12 @@ export default function AddAccountScreen({
 
       }
 
+      // LIMPIAR
+
+      setName("");
+
+      setBalance("");
+
       navigation.goBack();
 
     } catch (error) {
@@ -136,55 +182,147 @@ export default function AddAccountScreen({
         "No se pudo guardar"
       );
 
+    } finally {
+
+      setLoading(false);
+
     }
 
   };
 
   return (
 
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={
+        Platform.OS === "ios"
+          ? "padding"
+          : undefined
+      }
+    >
 
-      <Text style={styles.title}>
-        {
-          account
-            ? "Editar Cuenta"
-            : "Nueva Cuenta"
-        }
-      </Text>
-
-      <TextInput
-        placeholder="Nombre de la cuenta"
-        placeholderTextColor="#94A3B8"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
-
-      <TextInput
-        placeholder="Saldo"
-        placeholderTextColor="#94A3B8"
-        keyboardType="numeric"
-        value={balance}
-        onChangeText={setBalance}
-        style={styles.input}
-      />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={saveAccount}
+      <TouchableWithoutFeedback
+        onPress={Keyboard.dismiss}
       >
 
-        <Text style={styles.buttonText}>
-          {
-            account
-              ? "Actualizar"
-              : "Guardar"
-          }
-        </Text>
+        <LinearGradient
+          colors={["#0F172A", "#1E3A8A"]}
+          style={styles.container}
+        >
 
-      </TouchableOpacity>
+          <StatusBar
+            barStyle="light-content"
+          />
 
-    </View>
+          <View style={styles.header}>
+
+            <Ionicons
+              name="wallet"
+              size={60}
+              color="#10B981"
+            />
+
+            <Text style={styles.title}>
+              {
+                account
+                  ? "Editar Cuenta"
+                  : "Nueva Cuenta"
+              }
+            </Text>
+
+          </View>
+
+          {/* NOMBRE */}
+
+          <Text style={styles.label}>
+            Nombre de la Cuenta
+          </Text>
+
+          <View style={styles.inputContainer}>
+
+            <Ionicons
+              name="card"
+              size={22}
+              color="#64748B"
+            />
+
+            <TextInput
+              placeholder="Ej. Efectivo"
+              placeholderTextColor="#94A3B8"
+              value={name}
+              onChangeText={setName}
+              style={styles.input}
+            />
+
+          </View>
+
+          {/* SALDO */}
+
+          <Text style={styles.label}>
+            Saldo Inicial
+          </Text>
+
+          <View style={styles.inputContainer}>
+
+            <Ionicons
+              name="cash"
+              size={22}
+              color="#64748B"
+            />
+
+            <TextInput
+              placeholder="0.00"
+              placeholderTextColor="#94A3B8"
+              keyboardType="numeric"
+              value={balance}
+              onChangeText={(text) => {
+
+                const cleaned =
+                  text.replace(/[^0-9.]/g, "");
+
+                setBalance(cleaned);
+
+              }}
+              style={styles.input}
+            />
+
+          </View>
+
+          {/* BOTÓN */}
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={saveAccount}
+            disabled={loading}
+          >
+
+            {
+              loading ? (
+
+                <ActivityIndicator
+                  color="#FFFFFF"
+                />
+
+              ) : (
+
+                <Text style={styles.buttonText}>
+                  {
+                    account
+                      ? "Actualizar"
+                      : "Guardar"
+                  }
+                </Text>
+
+              )
+            }
+
+          </TouchableOpacity>
+
+        </LinearGradient>
+
+      </TouchableWithoutFeedback>
+
+    </KeyboardAvoidingView>
 
   );
 
@@ -194,25 +332,45 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: "#0F172A",
     padding: 20,
     paddingTop: 60,
   },
 
+  header: {
+    alignItems: "center",
+    marginBottom: 35,
+  },
+
   title: {
-    color: "#FFF",
-    fontSize: 28,
+    color: "#FFFFFF",
+    fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 30,
+    marginTop: 10,
+  },
+
+  label: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    marginBottom: 10,
+    marginTop: 10,
+    fontWeight: "600",
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    height: 60,
   },
 
   input: {
-    backgroundColor: "#FFF",
-    borderRadius: 15,
-    padding: 18,
-    marginBottom: 20,
-    fontSize: 16,
+    flex: 1,
+    marginLeft: 10,
     color: "#0F172A",
+    fontSize: 16,
   },
 
   button: {
@@ -221,10 +379,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 10,
   },
 
   buttonText: {
-    color: "#FFF",
+    color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
   },
