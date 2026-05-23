@@ -185,7 +185,7 @@ export default function HomeScreen({ navigation }) {
 
   });
 
-  // COLORES GRÁFICA
+  // COLORES
 
   const colors = [
     "#10B981",
@@ -195,7 +195,7 @@ export default function HomeScreen({ navigation }) {
     "#8B5CF6",
   ];
 
-  // DATA PIE CHART
+  // PIE CHART
 
   const chartData =
     Object.keys(expensesByCategory)
@@ -215,7 +215,7 @@ export default function HomeScreen({ navigation }) {
 
       }));
 
-  // ELIMINAR TRANSACCIÓN
+  // ELIMINAR
 
   const deleteTransaction = (id) => {
 
@@ -431,26 +431,53 @@ export default function HomeScreen({ navigation }) {
 
         {/* BOTONES */}
 
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() =>
-            navigation.navigate(
-              "AddTransaction"
-            )
-          }
-        >
+        <View style={styles.actionButtonsContainer}>
 
-          <Ionicons
-            name="add"
-            size={24}
-            color="#FFFFFF"
-          />
+          {/* INGRESO */}
 
-          <Text style={styles.addButtonText}>
-            Agregar Transacción
-          </Text>
+          <TouchableOpacity
+            style={styles.incomeButton}
+            onPress={() =>
+              navigation.navigate("AddIncome")
+            }
+          >
 
-        </TouchableOpacity>
+            <Ionicons
+              name="arrow-down-circle"
+              size={24}
+              color="#FFFFFF"
+            />
+
+            <Text style={styles.actionButtonText}>
+              Agregar Ingreso
+            </Text>
+
+          </TouchableOpacity>
+
+          {/* GASTO */}
+
+          <TouchableOpacity
+            style={styles.expenseButton}
+            onPress={() =>
+              navigation.navigate("AddExpense")
+            }
+          >
+
+            <Ionicons
+              name="arrow-up-circle"
+              size={24}
+              color="#FFFFFF"
+            />
+
+            <Text style={styles.actionButtonText}>
+              Agregar Gasto
+            </Text>
+
+          </TouchableOpacity>
+
+        </View>
+
+        {/* PRESUPUESTOS */}
 
         <TouchableOpacity
           style={styles.addButton}
@@ -799,7 +826,9 @@ export default function HomeScreen({ navigation }) {
                 <TouchableOpacity
                   onPress={() =>
                     navigation.navigate(
-                      "AddTransaction",
+                      item.type === "Ingreso"
+                        ? "AddIncome"
+                        : "AddExpense",
                       {
                         transaction: item
                       }
@@ -962,6 +991,39 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+
+  actionButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 25,
+  },
+
+  incomeButton: {
+    backgroundColor: "#10B981",
+    width: "48%",
+    height: 60,
+    borderRadius: 18,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  expenseButton: {
+    backgroundColor: "#EF4444",
+    width: "48%",
+    height: 60,
+    borderRadius: 18,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  actionButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "bold",
     marginLeft: 8,
   },
