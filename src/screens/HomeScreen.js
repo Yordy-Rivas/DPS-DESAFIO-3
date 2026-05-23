@@ -26,8 +26,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { Ionicons } from "@expo/vector-icons";
 
-import { Picker }
-from "@react-native-picker/picker";
+import { Picker } from "@react-native-picker/picker";
 
 import {
   collection,
@@ -62,19 +61,19 @@ export default function HomeScreen({ navigation }) {
     useState(0);
 
   const [selectedCategory, setSelectedCategory] =
-  useState("Todos");
+    useState("Todos");
 
   const [selectedType, setSelectedType] =
-  useState("Todos");
+    useState("Todos");
 
   const [selectedAccount, setSelectedAccount] =
-  useState("Todos");
+    useState("Todos");
 
   const [budgets, setBudgets] = useState({
-  Comida: 150,
-  Transporte: 100,
-  Entretenimiento: 80,
-});
+    Comida: 150,
+    Transporte: 100,
+    Entretenimiento: 80,
+  });
 
   const userName = user?.email
     ? user.email.split("@")[0]
@@ -113,11 +112,11 @@ export default function HomeScreen({ navigation }) {
 
           if (data.type === "Ingreso") {
 
-            totalIncome += data.amount;
+            totalIncome += Number(data.amount);
 
           } else {
 
-            totalExpense += data.amount;
+            totalExpense += Number(data.amount);
 
           }
 
@@ -141,72 +140,81 @@ export default function HomeScreen({ navigation }) {
 
   }, []);
 
+  // FILTROS
+
   const filteredTransactions =
-  transactions.filter((item) => {
+    transactions.filter((item) => {
 
-    const categoryMatch =
-      selectedCategory === "Todos" ||
-      item.category === selectedCategory;
+      const categoryMatch =
+        selectedCategory === "Todos" ||
+        item.category === selectedCategory;
 
-    const typeMatch =
-      selectedType === "Todos" ||
-      item.type === selectedType;
+      const typeMatch =
+        selectedType === "Todos" ||
+        item.type === selectedType;
 
-    const accountMatch =
-      selectedAccount === "Todos" ||
-      item.account === selectedAccount;
+      const accountMatch =
+        selectedAccount === "Todos" ||
+        item.account === selectedAccount;
 
-    return (
-      categoryMatch &&
-      typeMatch &&
-      accountMatch
-    );
+      return (
+        categoryMatch &&
+        typeMatch &&
+        accountMatch
+      );
 
-  });
+    });
+
+  // GASTOS POR CATEGORÍA
 
   const expensesByCategory = {};
 
-transactions.forEach((item) => {
+  transactions.forEach((item) => {
 
-  if (item.type === "Gasto") {
+    if (item.type === "Gasto") {
 
-    if (!expensesByCategory[item.category]) {
+      if (!expensesByCategory[item.category]) {
 
-      expensesByCategory[item.category] = 0;
+        expensesByCategory[item.category] = 0;
+
+      }
+
+      expensesByCategory[item.category] += Number(item.amount);
 
     }
 
-    expensesByCategory[item.category] += item.amount;
+  });
 
-  }
+  // COLORES GRÁFICA
 
-});
+  const colors = [
+    "#10B981",
+    "#3B82F6",
+    "#F59E0B",
+    "#EF4444",
+    "#8B5CF6",
+  ];
 
-const colors = [
-  "#10B981",
-  "#3B82F6",
-  "#F59E0B",
-  "#EF4444",
-  "#8B5CF6",
-];
+  // DATA PIE CHART
 
-const chartData =
-  Object.keys(expensesByCategory)
-    .map((category, index) => ({
+  const chartData =
+    Object.keys(expensesByCategory)
+      .map((category, index) => ({
 
-      name: category,
+        name: category,
 
-      amount:
-        expensesByCategory[category],
+        amount:
+          expensesByCategory[category],
 
-      color:
-        colors[index % colors.length],
+        color:
+          colors[index % colors.length],
 
-      legendFontColor: "#FFFFFF",
+        legendFontColor: "#FFFFFF",
 
-      legendFontSize: 14,
+        legendFontSize: 14,
 
-    }));
+      }));
+
   // ELIMINAR TRANSACCIÓN
 
   const deleteTransaction = (id) => {
@@ -236,6 +244,11 @@ const chartData =
                 )
               );
 
+              Alert.alert(
+                "Éxito",
+                "Transacción eliminada"
+              );
+
             } catch (error) {
 
               Alert.alert(
@@ -252,44 +265,47 @@ const chartData =
     );
   };
 
+  // LOGOUT
+
   const handleLogout = async () => {
 
-  Alert.alert(
-    "Cerrar Sesión",
-    "¿Deseas cerrar sesión?",
-    [
+    Alert.alert(
+      "Cerrar Sesión",
+      "¿Deseas cerrar sesión?",
+      [
 
-      {
-        text: "Cancelar",
-        style: "cancel"
-      },
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
 
-      {
-        text: "Cerrar Sesión",
+        {
+          text: "Cerrar Sesión",
 
-        onPress: async () => {
+          onPress: async () => {
 
-          try {
+            try {
 
-            await signOut(auth);
+              await signOut(auth);
 
-          } catch (error) {
+            } catch (error) {
 
-            Alert.alert(
-              "Error",
-              "No se pudo cerrar sesión"
-            );
+              Alert.alert(
+                "Error",
+                "No se pudo cerrar sesión"
+              );
+
+            }
 
           }
 
         }
 
-      }
+      ]
+    );
 
-    ]
-  );
+  };
 
-};
   // LOADING
 
   if (loading) {
@@ -339,10 +355,10 @@ const chartData =
 
           </View>
 
-            <TouchableOpacity
-              style={styles.profileCircle}
-              onPress={handleLogout}
-            >
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={handleLogout}
+          >
 
             <Ionicons
               name="log-out-outline"
@@ -350,7 +366,7 @@ const chartData =
               color="#FFFFFF"
             />
 
-            </TouchableOpacity>
+          </TouchableOpacity>
 
         </View>
 
@@ -366,13 +382,7 @@ const chartData =
           </Text>
 
           <Text style={styles.balanceAmount}>
-
-            {
-              balance < 0
-                ? `Excediste de tu presupuesto $${Math.abs(balance)}`
-                : `$${balance}`
-            }
-
+            ${balance}
           </Text>
 
         </LinearGradient>
@@ -419,7 +429,7 @@ const chartData =
 
         </View>
 
-        {/* BOTÓN */}
+        {/* BOTONES */}
 
         <TouchableOpacity
           style={styles.addButton}
@@ -442,275 +452,283 @@ const chartData =
 
         </TouchableOpacity>
 
-        {/* HISTORIAL */}
-        {/* FILTROS */}
-
-<Text style={styles.historyTitle}>
-  Filtros
-</Text>
-
-<View style={styles.filterContainer}>
-
-  {/* CATEGORÍA */}
-
-  <View style={styles.filterBox}>
-
-    <Picker
-      selectedValue={selectedCategory}
-
-      onValueChange={(value) =>
-        setSelectedCategory(value)
-      }
-
-      style={styles.picker}
-    >
-
-      <Picker.Item
-        label="Todas"
-        value="Todos"
-      />
-
-      <Picker.Item
-        label="Comida"
-        value="Comida"
-      />
-
-      <Picker.Item
-        label="Transporte"
-        value="Transporte"
-      />
-
-      <Picker.Item
-        label="Entretenimiento"
-        value="Entretenimiento"
-      />
-
-      <Picker.Item
-        label="Salario"
-        value="Salario"
-      />
-
-    </Picker>
-
-  </View>
-
-  {/* TIPO */}
-
-  <View style={styles.filterBox}>
-
-    <Picker
-      selectedValue={selectedType}
-
-      onValueChange={(value) =>
-        setSelectedType(value)
-      }
-
-      style={styles.picker}
-    >
-
-      <Picker.Item
-        label="Todos"
-        value="Todos"
-      />
-
-      <Picker.Item
-        label="Ingreso"
-        value="Ingreso"
-      />
-
-      <Picker.Item
-        label="Gasto"
-        value="Gasto"
-      />
-
-    </Picker>
-
-  </View>
-
-  {/* CUENTA */}
-
-  <View style={styles.filterBox}>
-
-    <Picker
-      selectedValue={selectedAccount}
-
-      onValueChange={(value) =>
-        setSelectedAccount(value)
-      }
-
-      style={styles.picker}
-    >
-
-      <Picker.Item
-        label="Todas"
-        value="Todos"
-      />
-
-      <Picker.Item
-        label="Efectivo"
-        value="Efectivo"
-      />
-
-      <Picker.Item
-        label="Cuenta Bancaria"
-        value="Cuenta Bancaria"
-      />
-
-      <Picker.Item
-        label="Tarjeta"
-        value="Tarjeta"
-      />
-
-    </Picker>
-
-  </View>
-
-</View>
-
-<Text style={styles.historyTitle}>
-  Gastos por Categoría
-</Text>
-
-{
-  chartData.length > 0 ? (
-
-    <PieChart
-      data={chartData}
-
-      width={
-        Dimensions.get("window").width - 40
-      }
-
-      height={220}
-
-      chartConfig={{
-        backgroundColor: "#1E3A8A",
-
-        backgroundGradientFrom: "#1E3A8A",
-
-        backgroundGradientTo: "#1E3A8A",
-
-        color: (opacity = 1) =>
-          `rgba(255,255,255,${opacity})`
-      }}
-
-      accessor={"amount"}
-
-      backgroundColor={"transparent"}
-
-      paddingLeft={"15"}
-
-      absolute
-    />
-
-  ) : (
-
-    <Text
-      style={{
-        color: "#FFFFFF",
-        textAlign: "center",
-        marginBottom: 20
-      }}
-    >
-      No hay gastos registrados
-    </Text>
-
-  )
-}
-
-<Text style={styles.historyTitle}>
-  Presupuestos Mensuales
-</Text>
-
-{
-  Object.keys(budgets).map((category) => {
-
-    const spent =
-      expensesByCategory[category] || 0;
-
-    const limit =
-      budgets[category];
-
-    const percentage =
-      spent / limit;
-
-    let barColor = "#10B981";
-
-    if (percentage >= 1) {
-
-      barColor = "#EF4444";
-
-    } else if (percentage >= 0.8) {
-
-      barColor = "#F59E0B";
-
-    }
-
-    return (
-
-      <View
-        key={category}
-        style={styles.budgetCard}
-      >
-
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            marginBottom: 8
-          }}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() =>
+            navigation.navigate("Budget")
+          }
         >
 
-          <Text style={styles.budgetTitle}>
-            {category}
-          </Text>
-
-          <Text style={styles.budgetAmount}>
-            ${spent} / ${limit} (
-            {Math.round(percentage * 100)}%
-            )
-          </Text>
-
-        </View>
-
-        <View style={styles.progressBackground}>
-
-          <View
-            style={{
-              height: "100%",
-              width: `${Math.min(
-                percentage * 100,
-                100
-              )}%`,
-              backgroundColor: barColor,
-              borderRadius: 10,
-            }}
+          <Ionicons
+            name="wallet-outline"
+            size={24}
+            color="#FFFFFF"
           />
 
+          <Text style={styles.addButtonText}>
+            Administrar Presupuestos
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* FILTROS */}
+
+        <Text style={styles.historyTitle}>
+          Filtros
+        </Text>
+
+        <View style={styles.filterContainer}>
+
+          {/* CATEGORÍA */}
+
+          <View style={styles.filterBox}>
+
+            <Picker
+              selectedValue={selectedCategory}
+
+              onValueChange={(value) =>
+                setSelectedCategory(value)
+              }
+
+              style={styles.picker}
+            >
+
+              <Picker.Item
+                label="Todas"
+                value="Todos"
+              />
+
+              <Picker.Item
+                label="Comida"
+                value="Comida"
+              />
+
+              <Picker.Item
+                label="Transporte"
+                value="Transporte"
+              />
+
+              <Picker.Item
+                label="Entretenimiento"
+                value="Entretenimiento"
+              />
+
+              <Picker.Item
+                label="Salario"
+                value="Salario"
+              />
+
+            </Picker>
+
+          </View>
+
+          {/* TIPO */}
+
+          <View style={styles.filterBox}>
+
+            <Picker
+              selectedValue={selectedType}
+
+              onValueChange={(value) =>
+                setSelectedType(value)
+              }
+
+              style={styles.picker}
+            >
+
+              <Picker.Item
+                label="Todos"
+                value="Todos"
+              />
+
+              <Picker.Item
+                label="Ingreso"
+                value="Ingreso"
+              />
+
+              <Picker.Item
+                label="Gasto"
+                value="Gasto"
+              />
+
+            </Picker>
+
+          </View>
+
+          {/* CUENTA */}
+
+          <View style={styles.filterBox}>
+
+            <Picker
+              selectedValue={selectedAccount}
+
+              onValueChange={(value) =>
+                setSelectedAccount(value)
+              }
+
+              style={styles.picker}
+            >
+
+              <Picker.Item
+                label="Todas"
+                value="Todos"
+              />
+
+              <Picker.Item
+                label="Efectivo"
+                value="Efectivo"
+              />
+
+              <Picker.Item
+                label="Cuenta Bancaria"
+                value="Cuenta Bancaria"
+              />
+
+              <Picker.Item
+                label="Tarjeta"
+                value="Tarjeta"
+              />
+
+            </Picker>
+
+          </View>
+
         </View>
 
-      </View>
+        {/* GRÁFICA */}
 
-    );
+        <Text style={styles.historyTitle}>
+          Gastos por Categoría
+        </Text>
 
-  })
-}
-<TouchableOpacity
-  style={styles.addButton}
-  onPress={() =>
-    navigation.navigate("Budget")
-  }
->
-  <Ionicons
-    name="wallet-outline"
-    size={24}
-    color="#FFFFFF"
-  />
+        {
+          chartData.length > 0 ? (
 
-  <Text style={styles.addButtonText}>
-    Administrar Presupuestos
-  </Text>
-</TouchableOpacity>
+            <PieChart
+              data={chartData}
+
+              width={
+                Dimensions.get("window").width - 40
+              }
+
+              height={220}
+
+              chartConfig={{
+                backgroundColor: "#1E3A8A",
+
+                backgroundGradientFrom: "#1E3A8A",
+
+                backgroundGradientTo: "#1E3A8A",
+
+                color: (opacity = 1) =>
+                  `rgba(255,255,255,${opacity})`
+              }}
+
+              accessor={"amount"}
+
+              backgroundColor={"transparent"}
+
+              paddingLeft={"15"}
+
+              absolute
+            />
+
+          ) : (
+
+            <Text
+              style={{
+                color: "#FFFFFF",
+                textAlign: "center",
+                marginBottom: 20
+              }}
+            >
+              No hay gastos registrados
+            </Text>
+
+          )
+        }
+
+        {/* PRESUPUESTOS */}
+
+        <Text style={styles.historyTitle}>
+          Presupuestos Mensuales
+        </Text>
+
+        {
+          Object.keys(budgets).map((category) => {
+
+            const spent =
+              expensesByCategory[category] || 0;
+
+            const limit =
+              budgets[category];
+
+            const percentage =
+              spent / limit;
+
+            let barColor = "#10B981";
+
+            if (percentage >= 1) {
+
+              barColor = "#EF4444";
+
+            } else if (percentage >= 0.8) {
+
+              barColor = "#F59E0B";
+
+            }
+
+            return (
+
+              <View
+                key={category}
+                style={styles.budgetCard}
+              >
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginBottom: 8
+                  }}
+                >
+
+                  <Text style={styles.budgetTitle}>
+                    {category}
+                  </Text>
+
+                  <Text style={styles.budgetAmount}>
+                    ${spent} / ${limit} (
+                    {Math.round(percentage * 100)}%
+                    )
+                  </Text>
+
+                </View>
+
+                <View style={styles.progressBackground}>
+
+                  <View
+                    style={{
+                      height: "100%",
+                      width: `${Math.min(
+                        percentage * 100,
+                        100
+                      )}%`,
+                      backgroundColor: barColor,
+                      borderRadius: 10,
+                    }}
+                  />
+
+                </View>
+
+              </View>
+
+            );
+
+          })
+        }
+
+        {/* TRANSACCIONES */}
 
         <Text style={styles.historyTitle}>
           Últimas Transacciones
@@ -737,6 +755,25 @@ const chartData =
                   style={styles.transactionType}
                 >
                   {item.category}
+                </Text>
+
+                <Text
+                  style={{
+                    color: "#94A3B8",
+                    marginTop: 4
+                  }}
+                >
+                  {item.date}
+                </Text>
+
+                <Text
+                  style={{
+                    color: "#2563EB",
+                    marginTop: 2,
+                    fontWeight: "600"
+                  }}
+                >
+                  {item.account}
                 </Text>
 
               </View>
@@ -970,41 +1007,42 @@ const styles = StyleSheet.create({
   },
 
   filterContainer: {
-  marginBottom: 20,
-},
+    marginBottom: 20,
+  },
 
-filterBox: {
-  backgroundColor: "#FFFFFF",
-  borderRadius: 15,
-  marginBottom: 15,
-},
+  filterBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 15,
+    marginBottom: 15,
+  },
 
-picker: {
-  color: "#0F172A",
-},
+  picker: {
+    color: "#0F172A",
+  },
 
-budgetCard: {
-  backgroundColor: "#FFFFFF",
-  padding: 15,
-  borderRadius: 18,
-  marginBottom: 15,
-},
+  budgetCard: {
+    backgroundColor: "#FFFFFF",
+    padding: 15,
+    borderRadius: 18,
+    marginBottom: 15,
+  },
 
-budgetTitle: {
-  fontSize: 16,
-  fontWeight: "bold",
-  color: "#0F172A",
-},
+  budgetTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#0F172A",
+  },
 
-budgetAmount: {
-  fontSize: 15,
-  color: "#64748B",
-},
+  budgetAmount: {
+    fontSize: 15,
+    color: "#64748B",
+  },
 
-progressBackground: {
-  height: 14,
-  backgroundColor: "#E2E8F0",
-  borderRadius: 10,
-  overflow: "hidden",
-},
+  progressBackground: {
+    height: 14,
+    backgroundColor: "#E2E8F0",
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+
 });
