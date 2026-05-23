@@ -1,58 +1,41 @@
-import React, {
-  useEffect,
-  useState
-} from "react";
+import React, { useEffect, useState } from 'react';
 
-import {
-  NavigationContainer
-} from "@react-navigation/native";
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import {
-  createNativeStackNavigator
-} from "@react-navigation/native-stack";
-
-import {
-  onAuthStateChanged
-} from "firebase/auth";
+import { onAuthStateChanged } from 'firebase/auth';
 
 import {
   ActivityIndicator,
   View
-} from "react-native";
+} from 'react-native';
 
-import {
-  auth
-} from "../services/firebaseConfig";
+import { auth } from '../services/firebaseConfig';
 
-import LoginScreen from "../screens/LoginScreen";
-import RegisterScreen from "../screens/RegisterScreen";
-import HomeScreen from "../screens/HomeScreen";
-import AccountsScreen from "../screens/AccountsScreen";
-import AddAccountScreen from "../screens/AddAccountScreen";
-import AddTransactionScreen from "../screens/AddTransactionScreen";
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
 
-import BudgetScreen from "../screens/BudgetScreen";
+import HomeScreen from '../screens/HomeScreen';
+import AccountsScreen from '../screens/AccountsScreen';
+import AddAccountScreen from '../screens/AddAccountScreen';
+import AddTransactionScreen from '../screens/AddTransactionScreen';
+import BudgetScreen from '../screens/BudgetScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
 
   const [user, setUser] = useState(null);
-
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
 
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
 
-        setUser(currentUser);
+      setUser(currentUser);
+      setLoading(false);
 
-        setLoading(false);
-
-      }
-    );
+    });
 
     return unsubscribe;
 
@@ -61,19 +44,15 @@ export default function AppNavigator() {
   if (loading) {
 
     return (
-
       <View
         style={{
           flex: 1,
-          justifyContent: "center",
-          alignItems: "center"
+          justifyContent: 'center',
+          alignItems: 'center'
         }}
       >
-
-        <ActivityIndicator size="large" />
-
+        <ActivityIndicator size="large" color="#6C63FF" />
       </View>
-
     );
 
   }
@@ -82,7 +61,11 @@ export default function AppNavigator() {
 
     <NavigationContainer>
 
-      <Stack.Navigator>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false
+        }}
+      >
 
         {user ? (
 
